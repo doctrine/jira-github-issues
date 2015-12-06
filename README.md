@@ -18,18 +18,21 @@ To keep all history we are importing issues from Jira.
 
 This repository contains all the scripts necessary for the migration.
 
-1. One script to download all versions of a project and create equivalent
-   milestones in Github Issue Tracker, saving a map of version-id/number to
-   milestone-id.
+* One script to create labels according to Resolutions and Issue Types
+  for a Jira Project in Github Issue tracker.
 
-2. One script to download all Jira issues per project and put them into a
-   folder, one file per issue with the Github import API format. This
-   script is using the version/milestone map as an input.
+* One script to download all versions of a project and create equivalent
+  milestones in Github Issue Tracker, saving a map of version-id/number to
+  milestone-id.
 
-3. One script to push all tickets to a Github import API queue and poll for
-   status, assigning each downloaded jira issue its appropriate Github Issue ID.
+* One script to download all Jira issues per project and put them into a
+  folder, one file per issue with the Github import API format. This
+  script is using the Github milestones and labels as input.
 
-4. One script to pull all versions from Jira and prepare a list of releases
+* One script to push all tickets to a Github import API queue and poll for
+  status, assigning each downloaded jira issue its appropriate Github Issue ID.
+
+* One script to pull all versions from Jira and prepare a list of releases
    to create on Github, including release notes with adjusted ticket references.
 
-5. One script to push the releases to Github.
+* One script to push the releases to Github.

@@ -1,4 +1,15 @@
 <?php
+/**
+ * Doctrine Jira to Github Migration
+ *
+ * Step 1: Create a milestone for every Jira version in the Github Issue Tracker.
+ *
+ * This is necessary so that we can attach all issues that we are going to
+ * import into Github Issues to their respective Jira version.
+ *
+ * @example
+ *  $ php version_to_milestones.php <ProjectKey>
+ */
 
 require_once 'vendor/autoload.php';
 
