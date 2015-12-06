@@ -20,9 +20,10 @@ function toMarkdown($text) {
     $converted = preg_replace('/-([^-]*)-/', '-$1-', $converted);
 
     $converted = preg_replace('/{code(:([a-z]+))?}/', '```$2', $converted);
+    $converted = preg_replace('/{code(:([^}]+))?}/', '```', $converted);
 
-    $converted = preg_replace('/\[(.+?)\|(.+)\]/', '[$1]($2)', $converted);
-    $converted = preg_replace('/\[(.+?)\]([^\(]*)/', '<$1>$2', $converted);
+    $converted = preg_replace('/\[(.+?)\|(.+?)\]/', '[$1]($2)', $converted);
+    //$converted = preg_replace('/\[(.+?)\]([^\(]*)/', '<$1>$2', $converted);
 
     $converted = preg_replace('/{noformat}/', '```', $converted);
 

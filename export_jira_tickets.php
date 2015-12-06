@@ -55,6 +55,21 @@ $count = 0;
 
 @mkdir("data/" . $project, 0777);
 
+$knownAssigneesMap = [
+    'beberlei'        => 'beberlei',
+    'guilhermeblanco' => 'guilhermeblanco',
+    'jwage'           => 'jwage',
+    'asm89'           => 'asm89',
+    'ocramius'        => 'ocramius',
+    'deeky666'        => 'deeky666',
+    'fabio.bat.silva' => 'FabioBatSilva',
+    'hobodave'        => 'hobodave',
+    'jmikola'         => 'jmikola',
+    'kimhemsoe'       => 'kimhemsoe',
+    'lsmith'          => 'lsmith77',
+    'wschalle'        => 'zeroedin-bill',
+];
+
 while (true) {
     $response = $client->get("http://www.doctrine-project.org/jira/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
 
@@ -73,17 +88,23 @@ while (true) {
     $count += count($issues['issues']);
 
     foreach ($issues['issues'] as $issue) {
+        if ($issue['key'] === 'DDC-93') var_dump($issue);
+
         $import = [
             'issue' => [
                 'title' => sprintf('%s: %s', $issue['key'], $issue['fields']['summary']),
-                'body' => sprintf("Jira issue originally created by user %s:\n\n%s", $issue['fields']['creator']['name'], toMarkdown($issue['fields']['description'])),
+                'body' => sprintf(
+                    "Jira issue originally created by user %s:\n\n%s",
+                    mentionName($issue['fields']['creator']['name']),
+                    toMarkdown($issue['fields']['description'])
+                ),
                 'created_at' => substr($issue['fields']['created'], 0, 19) . 'Z',
                 'closed' => in_array($issue['fields']['status']['name'], ['Resolved', 'Closed']),
             ],
         ];
 
-        if (isset($issue['fields']['versions']) && count($issue['fields']['versions']) > 0) {
-            $milestoneVersion = array_reduce($issue['fields']['versions'], function ($last, $version) {
+        if (isset($issue['fields']['fixVersions']) && count($issue['fields']['fixVersions']) > 0) {
+            $milestoneVersion = array_reduce($issue['fields']['fixVersions'], function ($last, $version) {
                 $versionName = preg_replace('(^v)', '', $version['name']);
                 if (version_compare($last, $versionName) > 0) {
                     return $versionName;
@@ -96,12 +117,20 @@ while (true) {
             }
         }
 
+        if (isset($issue['fields']['assignee']) && $issue['fields']['assignee'] && in_array($issue['fields']['assignee']['name'], $knownAssigneesMap)) {
+            $import['issue']['assignee'] = $knownAssigneesMap[$issue['fields']['assignee']['name']];
+        }
+
         if (isset($issue['fields']['comment']) && count($issue['fields']['comment']['comments']) > 0) {
             $import['comments'] = [];
             foreach ($issue['fields']['comment']['comments'] as $comment) {
                 $import['comments'][] = [
                     'created_at' => substr($comment['created'], 0, 19) . 'Z',
-                    'body' => sprintf("Comment created by '%s':\n\n%s", $comment['author']['name'], toMarkdown($comment['body'])),
+                    'body' => sprintf(
+                        "Comment created by %s:\n\n%s",
+                        mentionName($comment['author']['name']),
+                        toMarkdown($comment['body'])
+                    ),
                 ];
             }
         }
@@ -119,4 +148,13 @@ while (true) {
     }
 
     printf("Completed batch, continuing with start at %d\n", $startAt);
+}
+
+function mentionName($name) {
+    global $knownAssigneesMap;
+
+    if (isset($knownAssigneesMap[$name])) {
+        return '@' . $knownAssigneesMap[$name];
+    }
+    return $name;
 }
