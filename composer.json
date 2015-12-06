@@ -1,0 +1,6 @@
+{
+    "require": {
+        "kriswallsmith/buzz": "@stable",
+        "vlucas/phpdotenv": "^2.1"
+    }
+}
