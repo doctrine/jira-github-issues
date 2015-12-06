@@ -98,4 +98,83 @@ GitHub Flavor
 MARKDOWN
             , $markdown);
     }
+
+    public function testRegression()
+    {
+        $markdown = toMarkdown(<<<'JIRA'
+We need better control for setting the hash/key for resultset cache entries. Then provide a way to clear these cache entries.
+
+http://trac.doctrine-project.org/ticket/2042
+
+{code}
+$temp = Doctrine_Query::create()
+->from('Profile p')
+->where('p.id=?', $o)
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'product_cache') // custom tag
+->execute();
+
+$temp = Doctrine_Query::create()
+->from('Model m')
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'product_cache') // custom tag
+->execute();
+
+$temp = Doctrine_Query::create()
+->from('News n')
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'news_cache') // custom tag
+->execute();
+{code}
+
+and now
+
+{code}
+$conn  = Doctrine_Manager::getConnection('sqlite_cache_connection');
+$cacheDriver = new Doctrine_Cache_Db(array('connection' => $conn,
+'tableName' => 'cache'));
+
+$cacheDriver->deleteByTag('product_cache');
+{code}
+JIRA
+        );
+
+        $this->assertEquals($markdown, <<<'MARKDOWN'
+We need better control for setting the hash/key for resultset cache entries. Then provide a way to clear these cache entries.
+
+http://trac.doctrine-project.org/ticket/2042
+
+```
+$temp = Doctrine_Query::create()
+->from('Profile p')
+->where('p.id=?', $o)
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'product_cache') // custom tag
+->execute();
+
+$temp = Doctrine_Query::create()
+->from('Model m')
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'product_cache') // custom tag
+->execute();
+
+$temp = Doctrine_Query::create()
+->from('News n')
+->setHydrationMode(Doctrine::HYDRATE_ARRAY)
+->useResultCache(true, 3600, 'news_cache') // custom tag
+->execute();
+```
+
+and now
+
+```
+$conn  = Doctrine*Manager::getConnection('sqlite_cache*connection');
+$cacheDriver = new Doctrine*Cache*Db(array('connection' => $conn,
+'tableName' => 'cache'));
+
+$cacheDriver->deleteByTag('product_cache');
+```
+MARKDOWN
+        );
+    }
 }

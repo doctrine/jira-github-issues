@@ -10,7 +10,7 @@ function toMarkdown($text) {
         list ($match, $wrapper, $content) = $matches;
         $to = ($wrapper === '*') ? '**' : '*';
         return $to . $content . $to;
-      }, $converted);
+    }, $converted);
 
     $converted = preg_replace('/\{\{([^}]+)\}\}/', '`$1`', $converted);
     $converted = preg_replace('/\?\?((?:.[^?]|[^?].)+)\?\?/', '<cite>$1</cite>', $converted);
@@ -19,7 +19,7 @@ function toMarkdown($text) {
     $converted = preg_replace('/~([^~]*)~/', '<sub>$1</sub>', $converted);
     $converted = preg_replace('/-([^-]*)-/', '-$1-', $converted);
 
-    $converted = preg_replace('/{code(:([a-z]+))?}([^.]*?){code}/m', '```$2$3```', $converted);
+    $converted = preg_replace('/{code(:([a-z]+))?}/', '```$2', $converted);
 
     $converted = preg_replace('/\[(.+?)\|(.+)\]/', '[$1]($2)', $converted);
     $converted = preg_replace('/\[(.+?)\]([^\(]*)/', '<$1>$2', $converted);

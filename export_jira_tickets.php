@@ -48,7 +48,7 @@ if ($response->getStatusCode() !== 200) {
 
 $existingMilestones = [];
 foreach(json_decode($response->getContent(), true) as $existingMilestone) {
-    $existingMilestones[$existingMilestone['title']] = $existingMilestone['id'];
+    $existingMilestones[$existingMilestone['title']] = $existingMilestone['number'];
 }
 
 $count = 0;
@@ -73,7 +73,6 @@ while (true) {
     $count += count($issues['issues']);
 
     foreach ($issues['issues'] as $issue) {
-        var_dump(toMarkdown($issue['fields']['description']));
         $import = [
             'issue' => [
                 'title' => sprintf('%s: %s', $issue['key'], $issue['fields']['summary']),
