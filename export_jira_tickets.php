@@ -14,6 +14,7 @@
  */
 
 require_once 'vendor/autoload.php';
+require_once 'jira_markdown.php';
 
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
@@ -51,6 +52,9 @@ foreach(json_decode($response->getContent(), true) as $existingMilestone) {
 }
 
 $count = 0;
+
+@mkdir("data/" . $project, 0777);
+
 while (true) {
     $response = $client->get("http://www.doctrine-project.org/jira/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
 
@@ -69,10 +73,11 @@ while (true) {
     $count += count($issues['issues']);
 
     foreach ($issues['issues'] as $issue) {
+        var_dump(toMarkdown($issue['fields']['description']));
         $import = [
             'issue' => [
                 'title' => sprintf('%s: %s', $issue['key'], $issue['fields']['summary']),
-                'body' => sprintf("Jira issue originally created by user %s:\n\n%s", $issue['fields']['creator']['name'], $issue['fields']['description']),
+                'body' => sprintf("Jira issue originally created by user %s:\n\n%s", $issue['fields']['creator']['name'], toMarkdown($issue['fields']['description'])),
                 'created_at' => substr($issue['fields']['created'], 0, 19) . 'Z',
                 'closed' => in_array($issue['fields']['status']['name'], ['Resolved', 'Closed']),
             ],
@@ -97,7 +102,7 @@ while (true) {
             foreach ($issue['fields']['comment']['comments'] as $comment) {
                 $import['comments'][] = [
                     'created_at' => substr($comment['created'], 0, 19) . 'Z',
-                    'body' => sprintf("Comment created by '%s':\n\n%s", $comment['author']['name'], $comment['body']),
+                    'body' => sprintf("Comment created by '%s':\n\n%s", $comment['author']['name'], toMarkdown($comment['body'])),
                 ];
             }
         }
@@ -109,7 +114,6 @@ while (true) {
             ];
         }
 
-        @mkdir("data/" . $project, 0777);
         file_put_contents("data/" . $project . "/" . $issue['key'] . ".json", json_encode($import, JSON_PRETTY_PRINT));
         printf("Processed issue: %s (Idx: %d)\n", $issue['key'], $startAt);
         $startAt++;
