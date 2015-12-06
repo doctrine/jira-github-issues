@@ -85,7 +85,7 @@ var hello = 'world';
 lol();
 ```
 
-<http://google.com>
+[http://google.com]
 [Google](http://google.com)
 
 GitHub Flavor
@@ -176,5 +176,12 @@ $cacheDriver->deleteByTag('product_cache');
 ```
 MARKDOWN
         );
+    }
+
+    public function testConvertProjectLinks()
+    {
+        $markdown = toMarkdown('DDC-117 DBAL-123 DCOM-1');
+
+        $this->assertEquals($markdown, '[DDC-117](http://www.doctrine-project.org/jira/browse/DDC-117) [DBAL-123](http://www.doctrine-project.org/jira/browse/DBAL-123) [DCOM-1](http://www.doctrine-project.org/jira/browse/DCOM-1)');
     }
 }

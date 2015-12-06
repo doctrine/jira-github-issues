@@ -27,5 +27,9 @@ function toMarkdown($text) {
 
     $converted = preg_replace('/{noformat}/', '```', $converted);
 
+    $converted = preg_replace_callback('/((DBAL|DCOM|DDC|DMIG)+-([0-9]+))/', function ($matches) {
+        return '[' . $matches[1] . '](http://www.doctrine-project.org/jira/browse/' . $matches[1] . ')';
+    }, $converted);
+
     return $converted;
 }

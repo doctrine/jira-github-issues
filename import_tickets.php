@@ -46,13 +46,14 @@ if (isset($argv[2])) {
     $files = [$argv[2] . ".json"];
 }
 
+$count = 0;
 foreach ($files as $file) {
     if ($file === "." || $file === "..") continue;
 
     $issueKey = str_replace('.json', '', $file);
     $issue = json_decode(file_get_contents('data/' . $project . '/' . $file), true);
 
-    printf("Preparing %s\n", $issueKey);
+    printf("Preparing %s... ", $issueKey);
 
     if (isset($ticketStatus[$issueKey])) {
         if ($ticketStatus[$issueKey]['status'] === 'pending') {
@@ -61,22 +62,25 @@ foreach ($files as $file) {
             if ($response->getStatusCode() == 200) {
                 $ticketStatus[$issueKey] = json_decode($response->getContent(), true);
                 file_put_contents("data/" . $project . ".status.json", json_encode($ticketStatus, JSON_PRETTY_PRINT));
-                exit;
+                printf("updated status... ");
             }
         }
 
         if ($ticketStatus[$issueKey]['status'] === 'pending') {
+            printf("pending, skipped\n");
             continue;
         }
 
         if ($ticketStatus[$issueKey]['status'] === 'imported') {
+            printf("imported, skipped\n");
             continue;
         }
 
         if ($ticketStatus[$issueKey]['status'] === 'failed') {
-            printf("Error importing %s\n", $issueKey);
+            printf("Error importing, retry... ", $issueKey);
         }
     }
+    //printf("debug skip\n"); continue;
 
     $response = $client->post('https://api.github.com/repos/doctrine/' . $githubRepository . '/import/issues', $githubHeaders, json_encode($issue));
 
@@ -87,6 +91,11 @@ foreach ($files as $file) {
 
     $ticketStatus[$issueKey] = json_decode($response->getContent(), true);
     file_put_contents("data/" . $project . ".status.json", json_encode($ticketStatus, JSON_PRETTY_PRINT));
-    printf("Imported %s\n", $issueKey);
-    exit;
+    printf("imported %s\n", $issueKey);
+
+    $count++;
+
+    if (($count % 10) === 0) {
+        //exit;
+    }
 }

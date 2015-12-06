@@ -68,6 +68,7 @@ $knownAssigneesMap = [
     'kimhemsoe'       => 'kimhemsoe',
     'lsmith'          => 'lsmith77',
     'wschalle'        => 'zeroedin-bill',
+    'doctrinebot'     => 'doctrinebot',
 ];
 
 while (true) {
@@ -121,8 +122,24 @@ while (true) {
             $import['issue']['assignee'] = $knownAssigneesMap[$issue['fields']['assignee']['name']];
         }
 
+        $import['comments'] = [];
+
+        if (isset($issue['fields']['issuelinks']) && $issue['fields']['issuelinks']) {
+            $comment = "";
+            foreach ($issue['fields']['issuelinks'] as $link) {
+                if (isset($link['inwardIssue'])) {
+                    $comment .= sprintf("* %s [%s: %s](http://www.doctrine-project.org/jira/browse/%s)\n", $link['type']['inward'], $link['inwardIssue']['key'], $link['inwardIssue']['fields']['summary'], $link['inwardIssue']['key']);
+                } else if (isset($link['outwardIssue'])) {
+                    $comment .= sprintf("* %s [%s: %s](http://www.doctrine-project.org/jira/browse/%s)\n", $link['type']['outward'], $link['outwardIssue']['key'], $link['outwardIssue']['fields']['summary'], $link['outwardIssue']['key']);
+                }
+            }
+            $import['comments'][] = [
+                'body' => $comment,
+                'created_at' => substr($issue['fields']['created'], 0, 19) . 'Z',
+            ];
+        }
+
         if (isset($issue['fields']['comment']) && count($issue['fields']['comment']['comments']) > 0) {
-            $import['comments'] = [];
             foreach ($issue['fields']['comment']['comments'] as $comment) {
                 $import['comments'][] = [
                     'created_at' => substr($comment['created'], 0, 19) . 'Z',
@@ -140,6 +157,10 @@ while (true) {
                 'created_at' => substr($issue['fields']['resolutiondate'], 0, 19) . 'Z',
                 'body' => sprintf('Issue was closed with resolution "%s"', $issue['fields']['resolution']['name']),
             ];
+        }
+
+        if (count($import['comments']) === 0) {
+            unset($import['comments']);
         }
 
         file_put_contents("data/" . $project . "/" . $issue['key'] . ".json", json_encode($import, JSON_PRETTY_PRINT));
