@@ -57,6 +57,8 @@ foreach ($files as $file) {
 
     if (isset($ticketStatus[$issueKey])) {
         if ($ticketStatus[$issueKey]['status'] === 'pending') {
+            printf("pending, skipped\n");
+            continue;
             $response = $client->get($ticketStatus[$issueKey]['url'], $githubHeaders);
 
             if ($response->getStatusCode() == 200) {

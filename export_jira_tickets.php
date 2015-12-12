@@ -55,6 +55,8 @@ $count = 0;
 
 @mkdir("data/" . $project, 0777);
 
+$knownIssueTypes = ['Bug', 'New Feature', 'Improvement'];
+
 $knownAssigneesMap = [
     'beberlei'        => 'beberlei',
     'guilhermeblanco' => 'guilhermeblanco',
@@ -103,6 +105,10 @@ while (true) {
                 'closed' => in_array($issue['fields']['status']['name'], ['Resolved', 'Closed']),
             ],
         ];
+
+        if (isset($issue['fields']['issuetype']['name']) && in_array($issue['fields']['issuetype']['name'], $knownIssueTypes)) {
+            $import['issue']['labels'] = [$issue['fields']['issuetype']['name']];
+        }
 
         if (isset($issue['fields']['fixVersions']) && count($issue['fields']['fixVersions']) > 0) {
             $milestoneVersion = array_reduce($issue['fields']['fixVersions'], function ($last, $version) {

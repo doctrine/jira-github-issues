@@ -32,7 +32,11 @@ This repository contains all the scripts necessary for the migration.
 * One script to push all tickets to a Github import API queue and poll for
   status, assigning each downloaded jira issue its appropriate Github Issue ID.
 
-* One script to pull all versions from Jira and prepare a list of releases
-   to create on Github, including release notes with adjusted ticket references.
+* One script to pull all versions from Jira and prepare a list of releases to
+  create on Github, including release notes with adjusted ticket references and
+  then push them. This script creates a hashmap of Jira Version Id to Github
+  Release Id for future Redirects when Jira is decommissioned.
 
-* One script to push the releases to Github.
+* One script to pull all tickets from Github, extract the Jira Ticket Number
+  from it and create a map of Jira Ticket Key to Github Id for future Redirects
+  when Jira is decommissioned.
