@@ -44,7 +44,7 @@ while (true) {
     }
 
     foreach ($issues as $issue) {
-        if ($issue['user']['login'] != "doctrinebot") {
+        if ($issue['user']['login'] != $_SERVER['GITHUB_USERNAME']) {
             continue;
         }
 

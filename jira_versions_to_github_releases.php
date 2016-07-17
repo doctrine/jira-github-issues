@@ -30,7 +30,7 @@ $githubHeaders = ['User-Agent: Doctrine Jira Migration', 'Authorization: token '
 $jiraHeaders = ['Authorization: Basic ' . base64_encode(sprintf('%s:%s', $_SERVER['JIRA_USER'], $_SERVER['JIRA_PASSWORD']))];
 $client = new \Buzz\Browser();
 
-$response = $client->get("http://www.doctrine-project.org/jira/rest/api/2/project/$project/versions", $jiraHeaders);
+$response = $client->get($_SERVER['JIRA_URL'] . "/rest/api/2/project/$project/versions", $jiraHeaders);
 
 if ($response->getStatusCode() !== 200) {
     printf("Could not fetch versions of project '$project'\n");

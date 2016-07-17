@@ -74,7 +74,7 @@ $knownAssigneesMap = [
 ];
 
 while (true) {
-    $response = $client->get("http://www.doctrine-project.org/jira/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
+    $response = $client->get($_SERVER['JIRA_URL'] . "/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
 
     if ($response->getStatusCode() !== 200) {
         printf("Could not fetch versions of project '$project'\n");
@@ -133,11 +133,11 @@ while (true) {
         if (isset($issue['fields']['issuelinks']) && $issue['fields']['issuelinks']) {
             $comment = "";
             foreach ($issue['fields']['issuelinks'] as $link) {
-                if (isset($link['inwardIssue'])) {
+                /*if (isset($link['inwardIssue'])) {
                     $comment .= sprintf("* %s [%s: %s](http://www.doctrine-project.org/jira/browse/%s)\n", $link['type']['inward'], $link['inwardIssue']['key'], $link['inwardIssue']['fields']['summary'], $link['inwardIssue']['key']);
                 } else if (isset($link['outwardIssue'])) {
                     $comment .= sprintf("* %s [%s: %s](http://www.doctrine-project.org/jira/browse/%s)\n", $link['type']['outward'], $link['outwardIssue']['key'], $link['outwardIssue']['fields']['summary'], $link['outwardIssue']['key']);
-                }
+                }*/
             }
             $import['comments'][] = [
                 'body' => $comment,

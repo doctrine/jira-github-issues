@@ -21,7 +21,8 @@ if (!isset($projects[$project])) {
 
 $jiraHeaders = ['Authorization: Basic ' . base64_encode(sprintf('%s:%s', $_SERVER['JIRA_USER'], $_SERVER['JIRA_PASSWORD']))];
 
+
 $client = new \Buzz\Browser();
-$response = $client->get("http://www.doctrine-project.org/jira/rest/api/2/issue/" . $argv[2], $jiraHeaders);
+$response = $client->get($_SERVER['JIRA_URL'] . "/rest/api/2/issue/" . $argv[2], $jiraHeaders);
 
 var_dump(json_decode($response->getContent(), true));
