@@ -1,6 +1,6 @@
 <?php
 /**
- * Doctrine Github to Jira Migration
+ * Github to Jira Migration
  *
  * Step 2: Export all tickets from Jira into JSON file(s) on disk.
  *
@@ -34,12 +34,12 @@ if (!isset($projects[$project])) {
 
 $startAt = isset($argv[2]) ? (int)($argv[2]) : 0;
 $githubRepository = $projects[$project];
-$githubHeaders = ['User-Agent: Doctrine Jira Migration', 'Authorization: token ' . $_SERVER['GITHUB_TOKEN']];
-$jiraHeaders = ['Authorization: Basic ' . base64_encode(sprintf('%s:%s', $_SERVER['JIRA_USER'], $_SERVER['JIRA_PASSWORD']))];
+$githubHeaders = ['User-Agent: ' . getenv('GITHUB_ORG') . ' Jira Migration', 'Authorization: token ' . getenv('GITHUB_TOKEN')];
+$jiraHeaders = ['Authorization: Basic ' . base64_encode(sprintf('%s:%s', getenv('JIRA_USER'), getenv('JIRA_TOKEN')))];
 
 $client = new \Buzz\Browser();
 
-$response = $client->get('https://api.github.com/repos/doctrine/' . $githubRepository . '/milestones?state=all&per_page=100', $githubHeaders);
+$response = $client->get('https://api.github.com/repos/' . getenv('GITHUB_ORG') . '/' . $githubRepository . '/milestones?state=all&per_page=100', $githubHeaders);
 if ($response->getStatusCode() !== 200) {
     printf("Could not fetch existing Github Milestones\n");
     var_dump($response->getContent());
@@ -55,26 +55,11 @@ $count = 0;
 
 @mkdir("data/" . $project, 0777);
 
-$knownIssueTypes = ['Bug', 'New Feature', 'Improvement'];
-
-$knownAssigneesMap = [
-    'beberlei'        => 'beberlei',
-    'guilhermeblanco' => 'guilhermeblanco',
-    'jwage'           => 'jwage',
-    'asm89'           => 'asm89',
-    'ocramius'        => 'ocramius',
-    'deeky666'        => 'deeky666',
-    'fabio.bat.silva' => 'FabioBatSilva',
-    'hobodave'        => 'hobodave',
-    'jmikola'         => 'jmikola',
-    'kimhemsoe'       => 'kimhemsoe',
-    'lsmith'          => 'lsmith77',
-    'wschalle'        => 'zeroedin-bill',
-    'doctrinebot'     => 'doctrinebot',
-];
+$knownIssueTypes = explode(',', getenv('ISSUE_TYPES'));
+$knownAssigneesMap = json_decode(getenv('ASSIGNEES'), true);
 
 while (true) {
-    $response = $client->get($_SERVER['JIRA_URL'] . "/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
+    $response = $client->get(getenv('JIRA_URL') . "/rest/api/2/search?jql=" . urlencode("project = $project ORDER BY created ASC") . "&fields=" . urlencode("*all") . "&startAt=" . $startAt, $jiraHeaders);
 
     if ($response->getStatusCode() !== 200) {
         printf("Could not fetch versions of project '$project'\n");
@@ -91,18 +76,16 @@ while (true) {
     $count += count($issues['issues']);
 
     foreach ($issues['issues'] as $issue) {
-        if ($issue['key'] === 'DDC-93') var_dump($issue);
-
         $import = [
             'issue' => [
                 'title' => sprintf('%s: %s', $issue['key'], $issue['fields']['summary']),
                 'body' => sprintf(
                     "Jira issue originally created by user %s:\n\n%s",
-                    mentionName($issue['fields']['creator']['name']),
+                    mentionName($issue['fields']['creator']['accountId']),
                     toMarkdown($issue['fields']['description'])
                 ),
                 'created_at' => substr($issue['fields']['created'], 0, 19) . 'Z',
-                'closed' => in_array($issue['fields']['status']['name'], ['Resolved', 'Closed']),
+                'closed' => in_array($issue['fields']['status']['name'], explode(',', getenv('CLOSED_STATES'))),
             ],
         ];
 
@@ -124,8 +107,8 @@ while (true) {
             }
         }
 
-        if (isset($issue['fields']['assignee']) && $issue['fields']['assignee'] && in_array($issue['fields']['assignee']['name'], $knownAssigneesMap)) {
-            $import['issue']['assignee'] = $knownAssigneesMap[$issue['fields']['assignee']['name']];
+        if (isset($issue['fields']['assignee']) && $issue['fields']['assignee'] && in_array($issue['fields']['assignee']['accountId'], $knownAssigneesMap)) {
+            $import['issue']['assignee'] = $knownAssigneesMap[$issue['fields']['assignee']['accountId']];
         }
 
         $import['comments'] = [];
@@ -151,7 +134,7 @@ while (true) {
                     'created_at' => substr($comment['created'], 0, 19) . 'Z',
                     'body' => sprintf(
                         "Comment created by %s:\n\n%s",
-                        mentionName($comment['author']['name']),
+                        mentionName($comment['author']['accountId']),
                         toMarkdown($comment['body'])
                     ),
                 ];

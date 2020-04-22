@@ -1,8 +1,8 @@
 <?php
 
-return [
-    'DDC' => 'doctrine2',
-    'DBAL' => 'dbal',
-    'DMIG' => 'migrations',
-    'DCOM' => 'common',
-];
+require_once 'vendor/autoload.php';
+
+$dotenv = new Dotenv\Dotenv(__DIR__);
+$dotenv->load();
+
+return json_decode(getenv('PROJECTS'), true);

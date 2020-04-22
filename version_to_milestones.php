@@ -1,6 +1,6 @@
 <?php
 /**
- * Doctrine Jira to Github Migration
+ * arnsbogroup Jira to Github Migration
  *
  * Step 1: Create a milestone for every Jira version in the Github Issue Tracker.
  *
@@ -30,11 +30,12 @@ if (!isset($projects[$project])) {
 }
 
 $githubRepository = $projects[$project];
-$githubHeaders = ['User-Agent: Doctrine Jira Migration', 'Authorization: token ' . $_SERVER['GITHUB_TOKEN']];
+$githubHeaders = ['User-Agent: ' . getenv('GITHUB_ORG') . ' Jira Migration', 'Authorization: token ' . getenv('GITHUB_TOKEN')];
+$jiraHeaders = ['Authorization: Basic ' . base64_encode(sprintf('%s:%s', getenv('JIRA_USER'), getenv('JIRA_TOKEN')))];
 
 $client = new \Buzz\Browser();
 
-$response = $client->get($_SERVER['JIRA_URL'] . "/rest/api/2/project/$project/versions");
+$response = $client->get(getenv('JIRA_URL') . "/rest/api/2/project/$project/versions", $jiraHeaders);
 
 if ($response->getStatusCode() !== 200) {
     printf("Could not fetch versions of project '$project'\n");
@@ -70,7 +71,7 @@ usort($milestones, function ($a, $b) {
     return version_compare($a['title'], $b['title']) * -1;
 });
 
-$response = $client->get('https://api.github.com/repos/doctrine/' . $githubRepository . '/milestones?state=all&per_page=100', $githubHeaders);
+$response = $client->get('https://api.github.com/repos/' . getenv('GITHUB_ORG') . '/' . $githubRepository . '/milestones?state=all&per_page=100', $githubHeaders);
 if ($response->getStatusCode() !== 200) {
     printf("Could not fetch existing Github Milestones\n");
     var_dump($response->getContent());
@@ -88,7 +89,7 @@ foreach ($milestones as $milestone) {
         continue;
     }
 
-    $response = $client->post('https://api.github.com/repos/doctrine/' . $githubRepository . '/milestones', $githubHeaders, json_encode($milestone));
+    $response = $client->post('https://api.github.com/repos/' . getenv('GITHUB_ORG') . '/' . $githubRepository . '/milestones', $githubHeaders, json_encode($milestone));
 
     if ($response->getStatusCode() < 400) {
         $data = json_decode($response->getContent(), true);
