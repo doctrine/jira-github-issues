@@ -22,15 +22,15 @@ if (!isset($projects[$project])) {
 
 $githubRepository = $projects[$project];
 $githubHeaders = [
-    'User-Agent: Doctrine Jira Migration',
-    'Authorization: token ' . $_SERVER['GITHUB_TOKEN'],
+    'User-Agent: ' . getenv('GITHUB_ORG') . ' Jira Migration',
+    'Authorization: token ' . getenv('GITHUB_TOKEN'),
     'Accept: application/vnd.github.golden-comet-preview+json'
 ];
 
 $page = 1;
 $numbers = [];
 while (true) {
-    $response = $client->get('https://api.github.com/repos/doctrine/' . $githubRepository . '/issues?state=all&page=' . $page, $githubHeaders);
+    $response = $client->get('https://api.github.com/repos/' . getenv('GITHUB_ORG') . '/' . $githubRepository . '/issues?state=all&page=' . $page, $githubHeaders);
 
     if ($response->getStatusCode() != 200) {
         exit;
@@ -44,7 +44,11 @@ while (true) {
     }
 
     foreach ($issues as $issue) {
-        if ($issue['user']['login'] != $_SERVER['GITHUB_USERNAME']) {
+        if ($issue['user']['login'] != getenv('GITHUB_USERNAME')) {
+            continue;
+        }
+
+        if (strrpos($issue['title'], ':') === false) {
             continue;
         }
 

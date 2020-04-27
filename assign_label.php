@@ -24,7 +24,7 @@ if (!isset($projects[$project])) {
 $githubRepository = $projects[$project];
 $githubHeaders = [
     'User-Agent: ' . getenv('GITHUB_ORG') . ' Jira Migration',
-    'Authorization: token ' . getenv('GITHUB_TOKEN'])
+    'Authorization: token ' . getenv('GITHUB_TOKEN'),
     'Accept: application/vnd.github.golden-comet-preview+json'
 ];
 

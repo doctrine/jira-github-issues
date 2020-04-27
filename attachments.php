@@ -50,7 +50,7 @@ foreach ($issues as $issue) {
     $attachments = scandir('data/attachments/' . $project . '/' . $issue);
 
     $gist = [
-        'description' => 'Attachments to ' . getenv('GITHUB_ORG') . ' Jira Issue ' . $issue . ' - https://github.com/' . getenv('GITHUB_ORG') '/' . $githubRepository . '/issues/' . $issueMap[$issue],
+        'description' => 'Attachments to ' . getenv('GITHUB_ORG') . ' Jira Issue ' . $issue . ' - https://github.com/' . getenv('GITHUB_ORG') . '/' . $githubRepository . '/issues/' . $issueMap[$issue],
         'public' => false,
         'files' => [],
     ];
